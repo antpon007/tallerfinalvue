@@ -22,14 +22,13 @@ export default {
   data() {
     return {
       authenticated: false,
-      servidor: "http://10.20.9.25:3000/api/v1/"
+      servidor: process.env.VUE_APP_ROOT_API
     };
   },
   created() {
     if (localStorage.getItem("token")) {
       this.authenticated = true;
     }
-    console.log(this.authenticated);
   },
 
   methods: {
@@ -45,6 +44,8 @@ export default {
     },
     logout() {
       this.authenticated = false;
+      localStorage.removeItem("token");
+      localStorage.removeItem("_userId");
       this.$router.replace({ name: "signin" });
     },
     register() {
@@ -55,6 +56,10 @@ export default {
 </script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+}
 div.barra {
   padding: 10px;
   background-color: var(--azul);

@@ -28,7 +28,7 @@ export default {
         email: this.email,
         password: this.password
       };
-      fetch("http://10.20.9.25:3000/api/v1/" + "users/signin", {
+      fetch(process.env.VUE_APP_ROOT_API + "users/signin", {
         method: "POST",
         body: JSON.stringify(user),
         headers: {
@@ -41,6 +41,7 @@ export default {
         .then(data => {
           if (data.success) {
             localStorage.setItem("token", data.meta.token);
+            localStorage.setItem("_userId", data.item._id);
             this.$emit("authenticated", true);
             this.$router.replace({ name: "principal" });
           } else {

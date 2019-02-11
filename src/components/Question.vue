@@ -14,7 +14,7 @@
             style="margin:4px;padding:10px;"
             v-show="owner"
             @click="edit"
-          >editar</button>
+          >Edit</button>
         </div>
         <div class="col-2">
           <button
@@ -23,7 +23,7 @@
             style="margin:4px;padding:10px"
             v-show="owner"
             @click="delet"
-          >borrar</button>
+          >Delete</button>
         </div>
         <div class="col-2">
           <button
@@ -31,20 +31,34 @@
             class="btn btn-danger"
             style="margin:4px;padding:10px"
             @click="viewDetails"
-          >Ver detalles</button>
+          >Answers</button>
         </div>
       </div>
-      <div v-if="viewAnswer" class="col-12">holasasda
-        <div
-          style="margin:30px 0 0 0;"
-          v-for="item in items"
-          :key="item._id"
-          @edit="edit"
-          @delet="delet"
-        >
-          <p>Answer: {{item.text}}</p>
-          <p>author: {{item.author}}</p>
-          <p>created At: {{item.createdAt}}</p>
+      <div v-if="viewAnswer" class="col-12">
+        <div v-if="loading">
+          <p>Loading</p>
+        </div>
+        <div v-else class="col-12">
+          <div class="row" style="margin:0 50px;padding:0;">
+            <div class="col-12" style="margin:0;" v-for="item in even(items)" :key="item._id">
+              <p>Answer: {{item.text}}</p>
+              <p>author: {{item.author}}</p>
+              <p>created At: {{item.createdAt}}</p>
+              <hr>
+            </div>
+          </div>
+          <div
+            class="col-11"
+            v-show="this.$parent.$parent.$parent.authenticated"
+            style="margin:0 50px;padding:0;"
+          >
+            <answer-form
+              class="col-11"
+              :answerUpdate="replaceEditAnswer(answerUpdate)"
+              :answerId="answerId"
+              @save="createAnswer"
+            ></answer-form>
+          </div>
         </div>
       </div>
     </div>
@@ -52,8 +66,12 @@
 </template>
 
 <script>
+import AnswerForm from "./AnswerForm";
 export default {
-  name: "task",
+  name: "question",
+  components: {
+    "answer-form": AnswerForm
+  },
   props: {
     text: {
       type: String,
@@ -82,24 +100,34 @@ export default {
   },
   data() {
     return {
+      loading: true,
       items: [],
-      viewAnswer: false
+      viewAnswer: false,
+      answerId: "",
+      answerUpdate: {
+        question: this.questionId,
+        answerId: "",
+        text: "",
+        user: localStorage.getItem("_userId")
+      }
     };
   },
   methods: {
     load() {
+      this.loading = true;
+      this.items = [];
       fetch(
-        "http://10.20.9.25:3000/api/v1/" +
+        process.env.VUE_APP_ROOT_API +
           "answers/" +
-          this.questionId +
+          this.answerUpdate.question +
           "/answers"
       )
         .then(response => {
           return response.json();
         })
         .then(data => {
-          const { items = [] } = data;
-          const answers = items.map(item => {
+          const { item = [] } = data;
+          const answers = item.map(item => {
             const { user = {} } = item;
             const { firstname = "Anonimo", lastname = "", _id = "" } = user;
             return {
@@ -125,11 +153,40 @@ export default {
       });
     },
     delet() {
+      console.log(this.questionId);
       this.$emit("delet", {
         questionId: this.questionId
       });
     },
+    createAnswer(answers) {
+      console.log(answers);
+      fetch(process.env.VUE_APP_ROOT_API + "answers", {
+        method: "POST",
+        body: JSON.stringify(answers),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+        .then(response => {
+          return response.json();
+        })
+        .then(data => {
+          alert("answer save");
+          this.load();
+        });
+    },
+    replaceEditAnswer: function(answersUpdate) {
+      return answersUpdate;
+    },
+    even: function(items) {
+      // Set slice() to avoid to generate an infinite loop!
+      return items.slice().sort(function(a, b) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      this.load();
+    },
     viewDetails: function() {
+      console.log(this.questionId);
       this.viewAnswer = !this.viewAnswer;
       this.load();
     }

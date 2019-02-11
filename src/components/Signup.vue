@@ -40,7 +40,7 @@ export default {
         email: this.email,
         password: this.password
       };
-      fetch("http://10.20.9.25:3000/api/v1/" + "users/signup", {
+      fetch(process.env.VUE_APP_ROOT_API + "users/signup", {
         method: "POST",
         body: JSON.stringify(user),
         headers: {

@@ -15,14 +15,14 @@
               :author="item.author"
               :createdAt="item.createdAt"
               :authorId="item.authorId"
-              :owner="owner(item.authorId,authorActual)"
+              :owner="owner(item.authorId)"
               :questionId="item.questionId"
               @edit="edit"
               @delet="delet"
             ></question>
           </div>
         </div>
-        <div class="col-4">
+        <div class="col-4" v-show="this.$parent.$parent.authenticated">
           <question-form
             :questionUpdate="replaceEdit(questionUpdate)"
             :questionId="questionId"
@@ -63,7 +63,8 @@ export default {
   },
   methods: {
     load() {
-      fetch("http://10.20.9.25:3000/api/v1/" + "questions")
+      this.items = [];
+      fetch(process.env.VUE_APP_ROOT_API + "questions")
         .then(response => {
           return response.json();
         })
@@ -85,7 +86,7 @@ export default {
         });
     },
     create(questions) {
-      fetch(this.$parent.servidor + "questions", {
+      fetch(process.env.VUE_APP_ROOT_API + "questions", {
         method: "POST",
         body: JSON.stringify(questions),
         headers: {
@@ -101,7 +102,7 @@ export default {
         });
     },
     update(questions) {
-      fetch(this.$parent.servidor + "questions/" + questions.id, {
+      fetch(process.env.VUE_APP_ROOT_API + "questions/" + questions.id, {
         method: "PUT",
         body: JSON.stringify(questions),
         headers: {
@@ -119,24 +120,29 @@ export default {
     edit(questions) {
       this.questionUpdate = {
         questionId: questions.questionId,
-        authorId: questions.authorId,
-        description: questions.description,
-        finished: questions.finished,
-        createdAt: questions.createdAt
+        text: questions.text,
+        authorId: localStorage.getItem("_userId")
       };
     },
     delet(questions) {
-      fetch(this.$parent.servidor + "questions/" + questions.questionId, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json"
+      const question = {
+        user: localStorage.getItem("_userId")
+      };
+      fetch(
+        process.env.VUE_APP_ROOT_API + "questions/" + questions.questionId,
+        {
+          method: "DELETE",
+          body: JSON.stringify(question),
+          headers: {
+            "Content-Type": "application/json",
+            authorization: localStorage.getItem("token")
+          }
         }
-      })
+      )
         .then(response => {
           return response.json();
         })
         .then(data => {
-          var index = this.items.indexOf(data);
           alert("Question deleted");
           this.load();
         });
@@ -150,8 +156,8 @@ export default {
     replaceEdit: function(questionsUpdate) {
       return questionsUpdate;
     },
-    owner: function(authorID, authorActual) {
-      if (authorID == authorActual) {
+    owner: function(authorID) {
+      if (authorID == localStorage.getItem("_userId")) {
         return true;
       } else {
         return false;

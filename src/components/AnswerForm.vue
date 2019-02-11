@@ -1,6 +1,6 @@
 <template>
   <form>
-    <h3>Post your question</h3>
+    <h4>Answer:</h4>
     <div class="form-group">
       <textarea class="form-control" rows="3" v-model="_text"></textarea>
     </div>
@@ -11,12 +11,13 @@
 
 <script>
 export default {
-  name: "question-form",
+  name: "answer-form",
   props: {
-    questionUpdate: {
-      questionId: "",
+    answerUpdate: {
+      question: "",
+      answerId: "",
       text: "",
-      authorId: localStorage.getItem("_userId")
+      user: localStorage.getItem("_userId")
     }
   },
   data() {
@@ -25,36 +26,24 @@ export default {
       optionEdit: false
     };
   },
-  created() {},
   methods: {
     save() {
-      if (this.optionEdit) {
-        this.update();
-      } else {
-        this.$emit("save", {
-          text: this._text,
-          user: localStorage.getItem("_userId"),
-          token: localStorage.getItem("token")
-        });
-      }
+      this.$emit("save", {
+        text: this._text,
+        user: localStorage.getItem("_userId"),
+        question: this.answerUpdate.question,
+        token: localStorage.getItem("token")
+      });
       this.clear();
     },
     clear() {
-      this.questionUpdate.questionId = "";
-      this.questionUpdate.text = "";
-    },
-    update() {
-      this.$emit("update", {
-        id: this._id,
-        text: this._text,
-        user: localStorage.getItem("_userId"),
-        token: localStorage.getItem("token")
-      });
+      this.answerUpdate.answerId = "";
+      this.answerUpdate.text = "";
     }
   },
   computed: {
     option() {
-      if (this.questionUpdate.questionId == "") {
+      if (this.answerUpdate.answerId == "") {
         this.optionEdit = false;
       } else {
         this.optionEdit = true;
@@ -68,21 +57,21 @@ export default {
     _id: {
       //get
       get: function() {
-        return this.questionUpdate.questionId;
+        return this.answerUpdate.answerId;
       },
       // setter
       set: function(newValue) {
-        this.questionUpdate.questionId = newValue;
+        this.answerUpdate.answerId = newValue;
       }
     },
     _text: {
       //get
       get: function() {
-        return this.questionUpdate.text;
+        return this.answerUpdate.text;
       },
       // setter
       set: function(newValue) {
-        this.questionUpdate.text = newValue;
+        this.answerUpdate.text = newValue;
       }
     }
   }
